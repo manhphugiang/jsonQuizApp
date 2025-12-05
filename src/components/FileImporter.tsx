@@ -202,21 +202,101 @@ export function FileImporter({ onQuestionsLoaded, onError, darkMode }: FileImpor
           )}
         </div>
 
-        <div className="mt-6 p-4">
-          <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
-            Expected JSON Format:
-          </h3>
-          <pre className="text-xs text-gray-700 dark:text-gray-300 overflow-x-auto bg-transparent">
+        <div className="mt-6 p-4 bg-white/20 dark:bg-black/20 rounded-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-sm font-semibold" style={{ color: darkMode ? '#f9fafb' : '#1f2937' }}>
+              🤖 AI Quiz Generator Prompt
+            </h3>
+            <button
+              onClick={(e) => {
+                const prompt = `Generate a comprehensive quiz in JSON format with the following exact structure:
+
+[
+  {
+    "question": "Your detailed question here",
+    "answer": "A",
+    "explanation": "Comprehensive explanation that provides deep understanding of the concept, including why this answer is correct and why other options are incorrect. Include relevant background information and real-world applications.",
+    "options": ["Correct answer", "Plausible distractor 1", "Plausible distractor 2", "Plausible distractor 3"],
+    "context": "Detailed background context explaining the topic area, relevant concepts, and why this knowledge is important. This should help learners understand the broader subject matter."
+  }
+]
+
+JSON Format Requirements:
+- Each question object must have exactly these 5 fields: "question", "answer", "explanation", "options", "context"
+- "answer" must be exactly "A", "B", "C", or "D" (matching the position in options array)
+- "options" must be an array of exactly 4 strings
+- "explanation" should be 2-3 sentences minimum with clear reasoning
+- "context" should provide meaningful background and topic explanation
+- The root must be an array of question objects
+- Use proper JSON syntax with double quotes for all strings
+
+Content Requirements:
+- Create 10 questions covering different aspects of the topic
+- Options should be realistic and challenging (avoid obvious wrong answers)
+- Cover both fundamental concepts and practical applications
+- Include questions of varying difficulty levels
+- Explanations should teach the concept, not just state the answer
+- Context should help learners understand the broader subject matter
+
+Topic: based on the file provided
+
+Please generate a comprehensive quiz following this exact JSON structure and return only the valid JSON array.`;
+                
+                navigator.clipboard.writeText(prompt).then(() => {
+                  // Show success feedback
+                  const button = e.target as HTMLButtonElement;
+                  const originalText = button.textContent;
+                  button.textContent = '✓ Copied!';
+                  button.style.backgroundColor = '#10b981';
+                  setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.backgroundColor = '';
+                  }, 2000);
+                });
+              }}
+              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
+            >
+              📋 Copy Prompt
+            </button>
+          </div>
+          
+          <div className="mb-4 p-3 rounded border" style={{ 
+            backgroundColor: darkMode ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.2)',
+            borderColor: darkMode ? 'rgba(156,163,175,0.2)' : 'rgba(107,114,128,0.2)'
+          }}>
+            <p className="text-xs mb-2" style={{ color: darkMode ? '#d1d5db' : '#4b5563' }}>
+              Copy this prompt and use it with ChatGPT, Claude, or any AI assistant to generate comprehensive quiz questions.
+            </p>
+            <div className="text-xs" style={{ color: darkMode ? '#9ca3af' : '#6b7280' }}>
+              <p className="mb-1 font-semibold">Instructions:</p>
+              <ol className="list-decimal list-inside space-y-1 ml-2">
+                <li>Copy the prompt above from the button</li>
+                <li>Paste into your AI assistant</li>
+                <li>Copy the generated JSON back here</li>
+                <li>Adjust the number of the questions as you want in the preset prompt</li>
+              </ol>
+            </div>
+          </div>
+
+          <div className="p-3 rounded border" style={{ 
+            backgroundColor: darkMode ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.2)',
+            borderColor: darkMode ? 'rgba(156,163,175,0.2)' : 'rgba(107,114,128,0.2)'
+          }}>
+            <h4 className="text-xs font-semibold mb-2" style={{ color: darkMode ? '#f3f4f6' : '#1f2937' }}>
+              Expected JSON Format:
+            </h4>
+            <pre className="text-xs overflow-x-auto" style={{ color: darkMode ? '#e5e7eb' : '#374151' }}>
 {`[
   {
-    "question": "Question text?",
+    "question": "What is the capital of France?",
     "answer": "A",
-    "explanation": "Explanation...",
-    "options": ["A", "B", "C", "D"],
-    "context": "Additional context"
+    "explanation": "Paris is the capital and most populous city of France.",
+    "options": ["Paris", "London", "Berlin", "Madrid"],
+    "context": "European geography"
   }
 ]`}
-          </pre>
+            </pre>
+          </div>
         </div>
       </div>
     </div>
