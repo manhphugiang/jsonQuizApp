@@ -20,7 +20,6 @@ interface QuizAppProps {
 export function QuizApp({ questions, mode, onRestart }: QuizAppProps) {
   const {
     state,
-    canChangeMode,
     recordAnswer,
     goToNext,
     goToPrevious,
@@ -36,6 +35,13 @@ export function QuizApp({ questions, mode, onRestart }: QuizAppProps) {
   const currentQuestion = state.questions[state.currentQuestionIndex];
   const userAnswer = state.userAnswers.get(state.currentQuestionIndex);
   const isCurrentQuestionSubmitted = submittedQuestions.has(state.currentQuestionIndex);
+
+  // Automatically show feedback for submitted questions when navigating back
+  useEffect(() => {
+    if (isCurrentQuestionSubmitted && !state.showFeedback && mode === 'practice') {
+      showFeedback();
+    }
+  }, [state.currentQuestionIndex, isCurrentQuestionSubmitted, state.showFeedback, mode, showFeedback]);
 
   // Focus the container when component mounts to enable keyboard navigation
   useEffect(() => {
@@ -54,29 +60,25 @@ export function QuizApp({ questions, mode, onRestart }: QuizAppProps) {
   const handleAnswerSelect = (answer: string) => {
     // Don't allow changing answer after submission
     if (isCurrentQuestionSubmitted) {
-      console.log('Answer already submitted for this question, ignoring change');
       return;
     }
-    console.log('handleAnswerSelect called with:', answer);
     recordAnswer(answer);
-    console.log('After recordAnswer, userAnswer is:', state.userAnswers.get(state.currentQuestionIndex));
   };
 
   const handleSubmit = () => {
-    console.log('handleSubmit called');
-    console.log('mode:', mode);
+    // Mark current question as submitted
+    setSubmittedQuestions(prev => new Set(prev).add(state.currentQuestionIndex));
     
     if (mode === 'practice') {
-      // Requirement 4.1: Show feedback immediately in practice mode
-      console.log('Showing feedback');
+      // Show feedback immediately in practice mode
       showFeedback();
       setScrollPosition(0);
     } else {
-      // Requirement 5.3: In test mode, record answer and move to next
+      // In test mode, record answer and move to next
       if (state.currentQuestionIndex < state.questions.length - 1) {
         goToNext();
       } else {
-        // Requirement 5.4: Show results when all questions answered
+        // Show results when all questions answered
         completeQuiz();
       }
     }
@@ -88,24 +90,16 @@ export function QuizApp({ questions, mode, onRestart }: QuizAppProps) {
   };
 
   const handleNext = () => {
-    console.log('handleNext called');
-    console.log('showFeedback:', state.showFeedback);
-    console.log('userAnswer:', userAnswer);
-    console.log('mode:', mode);
-    
     // Don't allow navigation if no answer selected and no feedback showing
     if (!userAnswer && !state.showFeedback) {
-      console.log('Cannot proceed - no answer selected');
       return;
     }
     
     if (state.showFeedback) {
-      // Requirement 4.5: Two-step navigation - feedback then next
-      console.log('Moving to next question');
+      // Two-step navigation - feedback then next
       goToNext();
       setScrollPosition(0);
     } else {
-      console.log('Calling handleSubmit');
       handleSubmit();
     }
   };
@@ -141,12 +135,9 @@ export function QuizApp({ questions, mode, onRestart }: QuizAppProps) {
     if (!container || state.mode === 'results') return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      console.log('DIRECT handler - Key:', event.key);
-      
       // Enter key to submit answer
       if (event.key === 'Enter') {
         event.preventDefault();
-        console.log('DIRECT - Enter pressed, submitting answer');
         handleSubmit();
         return;
       }
@@ -155,11 +146,8 @@ export function QuizApp({ questions, mode, onRestart }: QuizAppProps) {
       if (event.key === 'ArrowRight') {
         event.preventDefault();
         if (state.showFeedback) {
-          console.log('DIRECT - Arrow Right: Going to next question');
           goToNext();
           setScrollPosition(0);
-        } else {
-          console.log('DIRECT - Arrow Right: No feedback showing, ignoring');
         }
         return;
       }
@@ -167,7 +155,6 @@ export function QuizApp({ questions, mode, onRestart }: QuizAppProps) {
       // Arrow Left: Previous question
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
-        console.log('DIRECT - Arrow Left: Going to previous question');
         goToPrevious();
         return;
       }
@@ -176,7 +163,6 @@ export function QuizApp({ questions, mode, onRestart }: QuizAppProps) {
       if (event.key === 'ArrowUp') {
         event.preventDefault();
         if (state.showFeedback) {
-          console.log('DIRECT - Scrolling up');
           handleScrollUp();
         }
         return;
@@ -185,7 +171,6 @@ export function QuizApp({ questions, mode, onRestart }: QuizAppProps) {
       if (event.key === 'ArrowDown') {
         event.preventDefault();
         if (state.showFeedback) {
-          console.log('DIRECT - Scrolling down');
           handleScrollDown();
         }
         return;
@@ -199,7 +184,6 @@ export function QuizApp({ questions, mode, onRestart }: QuizAppProps) {
         event.preventDefault();
         const answerIndex = parseInt(key) - 1;
         const answer = String.fromCharCode(65 + answerIndex); // Convert to A-D
-        console.log('DIRECT - Selecting answer:', answer);
         handleAnswerSelect(answer);
         return;
       }
@@ -207,7 +191,6 @@ export function QuizApp({ questions, mode, onRestart }: QuizAppProps) {
       // Letter keys A-D for answer selection (single character only)
       if (key.length === 1 && key >= 'A' && key <= 'D') {
         event.preventDefault();
-        console.log('DIRECT - Selecting answer:', key);
         handleAnswerSelect(key);
         return;
       }
@@ -229,20 +212,20 @@ export function QuizApp({ questions, mode, onRestart }: QuizAppProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 md:p-8">
-      <div 
-        ref={containerRef}
-        className="max-w-4xl mx-auto bg-white rounded-lg shadow-xl p-6 md:p-8 transform transition-all"
-        tabIndex={0}
-        onClick={handleContainerClick}
-        style={{ outline: 'none' }}
-      >
+    <div 
+      ref={containerRef}
+      className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 p-4 md:p-8"
+      tabIndex={0}
+      onClick={handleContainerClick}
+      style={{ outline: 'none' }}
+    >
+      <div className="max-w-4xl mx-auto">
         <div className="mb-6 flex justify-between items-start">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
               {mode === 'practice' ? 'Practice' : 'Test'} Mode
             </h1>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               Question {state.currentQuestionIndex + 1} of {state.questions.length}
             </p>
           </div>
@@ -266,36 +249,27 @@ export function QuizApp({ questions, mode, onRestart }: QuizAppProps) {
           </div>
         </div>
 
-        {!canChangeMode && (
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
-            <p className="text-sm text-blue-800">
-              Mode is locked once quiz has started (Requirement 3.4)
-            </p>
-          </div>
-        )}
+
 
         <QuestionDisplay
           question={currentQuestion}
           selectedAnswer={userAnswer || null}
           onAnswerSelect={handleAnswerSelect}
-          showFeedback={state.showFeedback}
+          showFeedback={state.showFeedback || isCurrentQuestionSubmitted}
           correctAnswer={state.showFeedback ? currentQuestion.answer : undefined}
         />
 
         {state.showFeedback && mode === 'practice' && (
-          <>
-            {console.log('Feedback - userAnswer:', userAnswer, 'correctAnswer:', currentQuestion.answer, 'isCorrect:', userAnswer === currentQuestion.answer)}
-            <FeedbackPanel
-              isCorrect={userAnswer === currentQuestion.answer}
-              explanation={currentQuestion.explanation}
-              correctAnswer={currentQuestion.answer}
-              scrollPosition={scrollPosition}
-              onScroll={(direction) => {
-                if (direction === 'down') handleScrollDown();
-                else handleScrollUp();
-              }}
-            />
-          </>
+          <FeedbackPanel
+            isCorrect={userAnswer === currentQuestion.answer}
+            explanation={currentQuestion.explanation}
+            correctAnswer={currentQuestion.answer}
+            scrollPosition={scrollPosition}
+            onScroll={(direction) => {
+              if (direction === 'down') handleScrollDown();
+              else handleScrollUp();
+            }}
+          />
         )}
 
         <div className="flex justify-between mt-6 gap-4">
@@ -307,7 +281,7 @@ export function QuizApp({ questions, mode, onRestart }: QuizAppProps) {
             }}
             disabled={state.currentQuestionIndex === 0}
             aria-label="Previous question"
-            className="px-6 py-3 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400 rounded-lg transition-all font-medium transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-gray-300"
+            className="px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-400 dark:disabled:text-gray-600 dark:text-gray-200 rounded-lg transition-all font-medium transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
           >
             ← Previous
           </button>
@@ -319,7 +293,7 @@ export function QuizApp({ questions, mode, onRestart }: QuizAppProps) {
             }}
             disabled={!userAnswer && !state.showFeedback}
             aria-label={state.showFeedback ? 'Next question' : 'Submit answer'}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white rounded-lg transition-all font-medium transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-blue-300"
+            className="px-6 py-3 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-blue-300 dark:disabled:bg-blue-900 text-white rounded-lg transition-all font-medium transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-700"
           >
             {state.showFeedback ? 'Next →' : 'Submit Answer'}
           </button>
@@ -330,7 +304,7 @@ export function QuizApp({ questions, mode, onRestart }: QuizAppProps) {
             onRestart();
             e.currentTarget.blur();
           }}
-          className="mt-4 w-full px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+          className="mt-4 w-full px-6 py-2 bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 text-white rounded-lg transition-colors"
         >
           Restart Quiz
         </button>

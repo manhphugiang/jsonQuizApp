@@ -27,45 +27,45 @@ export function FeedbackPanel({
   }, [scrollPosition]);
 
   return (
-    <div className="mt-6 p-6 bg-gray-50 rounded-lg border-2 border-gray-200">
-      {/* Requirement 4.4: Highlight correctness */}
+    <div className="mt-6 p-6 bg-white/20 dark:bg-black/20 rounded-lg border-2 border-white/30 dark:border-gray-500/30 backdrop-blur-sm">
+      {/* Highlight correctness */}
       <div className="mb-4">
         <p
           className={`text-lg font-bold ${
-            isCorrect ? 'text-green-600' : 'text-red-600'
+            isCorrect ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
           }`}
         >
           {isCorrect ? '✓ Correct!' : '✗ Incorrect'}
         </p>
       </div>
 
-      {/* Requirements 4.2: Show correct answer */}
+      {/* Show correct answer */}
       <div className="mb-4">
-        <p className="text-sm font-semibold text-gray-700 mb-1">
+        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">
           Correct Answer:
         </p>
-        <p className="text-base text-gray-900 font-medium">{correctAnswer}</p>
+        <p className="text-base text-gray-900 dark:text-gray-100 font-medium">{correctAnswer}</p>
       </div>
 
-      {/* Requirements 4.3, 4.6: Show explanation with scrolling */}
+      {/* Show explanation with scrolling */}
       <div className="mb-2">
-        <p className="text-sm font-semibold text-gray-700 mb-2">Explanation:</p>
+        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">Explanation:</p>
         <div
           ref={explanationRef}
-          className="text-sm text-gray-800 max-h-48 overflow-y-auto p-3 bg-white rounded border border-gray-200"
+          className="text-sm text-gray-800 dark:text-gray-200 max-h-48 overflow-y-auto p-3 bg-white/10 dark:bg-black/10 rounded border border-white/30 dark:border-gray-500/30 backdrop-blur-sm"
         >
           {explanation}
         </div>
       </div>
 
-      {/* Requirement 4.6: Scrolling instructions */}
-      <div className="flex items-center justify-between text-xs text-gray-500 mt-3">
+      {/* Scrolling instructions */}
+      <div className="flex items-center justify-between text-xs text-gray-700 dark:text-gray-300 mt-3">
         <p>
-          Use <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded">↑↓</span> to
+          Use <span className="font-mono bg-gray-800/20 dark:bg-white/20 px-1.5 py-0.5 rounded">↑↓</span> to
           scroll explanation
         </p>
         <p>
-          Press <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded">→</span> to
+          Press <span className="font-mono bg-gray-800/20 dark:bg-white/20 px-1.5 py-0.5 rounded">→</span> to
           continue
         </p>
       </div>

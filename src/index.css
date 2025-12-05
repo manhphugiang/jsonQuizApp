@@ -3,3 +3,19 @@
 body {
   min-height: 100vh;
 }
+
+/* Simple dark mode implementation */
+:root {
+  --bg-gradient-from: #dbeafe;
+  --bg-gradient-to: #fae8ff;
+}
+
+[data-theme="dark"] {
+  --bg-gradient-from: #111827;
+  --bg-gradient-to: #1f2937;
+}
+
+body {
+  background: linear-gradient(to bottom right, var(--bg-gradient-from), var(--bg-gradient-to)) !important;
+  min-height: 100vh;
+}

@@ -28,30 +28,30 @@ export function QuestionDisplay({
     const isIncorrect = showFeedback && isSelected && selectedAnswer !== correctAnswer;
 
     if (isCorrect) {
-      return 'border-green-500 bg-green-50';
+      return 'border-green-500 dark:border-green-400 bg-green-500/20 dark:bg-green-400/20';
     }
     if (isIncorrect) {
-      return 'border-red-500 bg-red-50';
+      return 'border-red-500 dark:border-red-400 bg-red-500/20 dark:bg-red-400/20';
     }
     if (isSelected) {
-      return 'border-blue-500 bg-blue-50';
+      return 'border-blue-500 dark:border-blue-400 bg-blue-500/20 dark:bg-blue-400/20';
     }
-    return 'border-gray-200 hover:border-gray-300';
+    return 'border-white/30 dark:border-gray-500/50 hover:border-white/50 dark:hover:border-gray-400/70 bg-white/20 dark:bg-black/20';
   };
 
   return (
     <div className="space-y-6">
       {/* Context */}
       {question.context && (
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm font-semibold text-blue-800 mb-1">Context:</p>
-          <p className="text-sm text-blue-900">{question.context}</p>
+        <div className="p-4 bg-blue-500/20 dark:bg-blue-400/20 border border-blue-500/30 dark:border-blue-400/30 rounded-lg backdrop-blur-sm">
+          <p className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-1">Context:</p>
+          <p className="text-sm text-blue-900 dark:text-blue-200">{question.context}</p>
         </div>
       )}
 
       {/* Question */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+        <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">
           {question.question}
         </h2>
       </div>
@@ -77,16 +77,15 @@ export function QuestionDisplay({
             >
               <div className="flex items-start">
                 <div className="flex-shrink-0 mr-3">
-                  {/* Requirement 8.4: Display keyboard shortcuts with each option */}
-                  <span className="inline-flex items-center justify-center w-8 h-8 bg-gray-100 rounded font-mono text-sm font-semibold">
+                  <span className="inline-flex items-center justify-center w-8 h-8 bg-gray-100 dark:bg-gray-700 dark:text-gray-200 rounded font-mono text-sm font-semibold">
                     {optionLabel}
                   </span>
-                  <span className="ml-1 text-xs text-gray-500">
+                  <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
                     ({keyboardKey})
                   </span>
                 </div>
                 <div className="flex-1">
-                  <p className="text-gray-800">{option}</p>
+                  <p className="text-gray-800 dark:text-gray-200">{option}</p>
                 </div>
               </div>
             </button>
@@ -95,11 +94,11 @@ export function QuestionDisplay({
       </div>
 
       {/* Keyboard shortcuts legend */}
-      <div className="p-3 bg-gray-50 rounded-lg">
-        <p className="text-xs text-gray-600">
+      <div className="p-3 bg-white/20 dark:bg-black/20 rounded-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+        <p className="text-xs text-gray-700 dark:text-gray-300">
           <span className="font-semibold">Keyboard shortcuts:</span> Press{' '}
-          <span className="font-mono bg-gray-200 px-1 rounded">1-4</span> or{' '}
-          <span className="font-mono bg-gray-200 px-1 rounded">A-D</span> to select an answer
+          <span className="font-mono bg-gray-800/20 dark:bg-white/20 px-1 rounded">1-4</span> or{' '}
+          <span className="font-mono bg-gray-800/20 dark:bg-white/20 px-1 rounded">A-D</span> to select an answer
         </p>
       </div>
     </div>

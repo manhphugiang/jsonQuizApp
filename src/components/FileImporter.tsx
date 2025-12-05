@@ -5,13 +5,14 @@ import { validateQuestions } from '../utils/validation';
 interface FileImporterProps {
   onQuestionsLoaded: (questions: Question[]) => void;
   onError: (error: string) => void;
+  darkMode: boolean;
 }
 
 /**
  * Component for importing and validating quiz questions from JSON files
  * Requirements: 1.1, 1.2, 1.3, 1.4, 1.5
  */
-export function FileImporter({ onQuestionsLoaded, onError }: FileImporterProps) {
+export function FileImporter({ onQuestionsLoaded, onError, darkMode }: FileImporterProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -118,12 +119,12 @@ export function FileImporter({ onQuestionsLoaded, onError }: FileImporterProps) 
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-8">
-      <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full transform transition-all hover:shadow-2xl">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2 text-center">
+    <div className="flex flex-col items-center justify-center min-h-screen p-8" style={{ background: 'transparent' }}>
+      <div className="max-w-md w-full">
+        <h1 className="text-3xl font-bold mb-2 text-center" style={{ color: darkMode ? '#f9fafb' : '#1f2937' }}>
           Interactive Quiz App
         </h1>
-        <p className="text-gray-600 mb-6 text-center">
+        <p className="mb-6 text-center" style={{ color: darkMode ? '#d1d5db' : '#4b5563' }}>
           Import your quiz questions from a JSON file to get started
         </p>
 
@@ -148,10 +149,10 @@ export function FileImporter({ onQuestionsLoaded, onError }: FileImporterProps) 
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
+              <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">or</span>
+              <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">or</span>
             </div>
           </div>
 
@@ -169,7 +170,7 @@ export function FileImporter({ onQuestionsLoaded, onError }: FileImporterProps) 
                 value={pastedContent}
                 onChange={(e) => setPastedContent(e.target.value)}
                 placeholder="Paste your JSON content here..."
-                className="w-full h-48 p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 font-mono text-sm"
+                className="w-full h-48 p-3 border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-lg focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 font-mono text-sm"
                 disabled={isLoading}
               />
               <div className="flex gap-2">
@@ -186,7 +187,7 @@ export function FileImporter({ onQuestionsLoaded, onError }: FileImporterProps) 
                     setPastedContent('');
                   }}
                   disabled={isLoading}
-                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-700 font-semibold rounded-lg transition-colors"
+                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:bg-gray-100 dark:disabled:bg-gray-800 text-gray-700 dark:text-gray-200 font-semibold rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
@@ -195,17 +196,17 @@ export function FileImporter({ onQuestionsLoaded, onError }: FileImporterProps) 
           )}
 
           {fileName && !isLoading && (
-            <p className="text-sm text-gray-600 text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
               Selected: {fileName}
             </p>
           )}
         </div>
 
-        <div className="mt-6 p-4 bg-gray-100 rounded-lg">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">
+        <div className="mt-6 p-4">
+          <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
             Expected JSON Format:
           </h3>
-          <pre className="text-xs text-gray-600 overflow-x-auto">
+          <pre className="text-xs text-gray-700 dark:text-gray-300 overflow-x-auto bg-transparent">
 {`[
   {
     "question": "Question text?",
