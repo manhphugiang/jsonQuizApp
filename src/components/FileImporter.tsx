@@ -215,7 +215,7 @@ export function FileImporter({ onQuestionsLoaded, onError, darkMode }: FileImpor
   {
     "question": "Your detailed question here",
     "answer": "A",
-    "explanation": "Comprehensive explanation that provides deep understanding of the concept, including why this answer is correct and why other options are incorrect. Include relevant background information and real-world applications.",
+    "explanation": "Comprehensive explanation that provides deep understanding of the concept, including why this answer is correct and why other options are incorrect, explain in details why the other answer is incorrect based on the information of the document provided. Include relevant background information and real-world applications.",
     "options": ["Correct answer", "Plausible distractor 1", "Plausible distractor 2", "Plausible distractor 3"],
     "context": "Detailed background context explaining the topic area, relevant concepts, and why this knowledge is important. This should help learners understand the broader subject matter."
   }
@@ -225,13 +225,13 @@ JSON Format Requirements:
 - Each question object must have exactly these 5 fields: "question", "answer", "explanation", "options", "context"
 - "answer" must be exactly "A", "B", "C", or "D" (matching the position in options array)
 - "options" must be an array of exactly 4 strings
-- "explanation" should be 2-3 sentences minimum with clear reasoning
+- "explanation" should be 5-6 sentences minimum with clear reasoning with why the answer is correct and why the others answers are uncorrect
 - "context" should provide meaningful background and topic explanation
 - The root must be an array of question objects
 - Use proper JSON syntax with double quotes for all strings
 
 Content Requirements:
-- Create 10 questions covering different aspects of the topic
+- Create 15 questions covering different aspects of the topic
 - Options should be realistic and challenging (avoid obvious wrong answers)
 - Cover both fundamental concepts and practical applications
 - Include questions of varying difficulty levels
