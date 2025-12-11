@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import type { Question } from '../types';
 import { validateQuestions } from '../utils/validation';
+import { parseQuizData, isToonFormat, getSampleToonFormat } from '../utils/toon';
 
 interface FileImporterProps {
   onQuestionsLoaded: (questions: Question[]) => void;
@@ -34,13 +35,14 @@ export function FileImporter({ onQuestionsLoaded, onError, darkMode }: FileImpor
       try {
         const content = e.target?.result as string;
         
-        // Parse JSON - Requirement 1.1
+        // Parse JSON or TOON - Requirement 1.1
         let parsedData: any;
         try {
-          parsedData = JSON.parse(content);
+          parsedData = parseQuizData(content);
         } catch (parseError) {
-          // Requirement 1.3: Display error for malformed JSON
-          onError('Invalid JSON file: The file contains malformed JSON syntax');
+          // Requirement 1.3: Display error for malformed data
+          const format = isToonFormat(content) ? 'TOON' : 'JSON';
+          onError(`Invalid ${format} file: The file contains malformed ${format} syntax`);
           setIsLoading(false);
           return;
         }
@@ -81,19 +83,20 @@ export function FileImporter({ onQuestionsLoaded, onError, darkMode }: FileImpor
 
   const handlePasteSubmit = () => {
     if (!pastedContent.trim()) {
-      onError('Please paste JSON content');
+      onError('Please paste JSON or TOON content');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Parse JSON
+      // Parse JSON or TOON
       let parsedData: any;
       try {
-        parsedData = JSON.parse(pastedContent);
+        parsedData = parseQuizData(pastedContent);
       } catch (parseError) {
-        onError('Invalid JSON: The pasted content contains malformed JSON syntax');
+        const format = isToonFormat(pastedContent) ? 'TOON' : 'JSON';
+        onError(`Invalid ${format}: The pasted content contains malformed ${format} syntax`);
         setIsLoading(false);
         return;
       }
@@ -113,7 +116,7 @@ export function FileImporter({ onQuestionsLoaded, onError, darkMode }: FileImpor
       onQuestionsLoaded(questions);
       setIsLoading(false);
     } catch (error) {
-      onError(`Error processing JSON: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      onError(`Error processing data: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setIsLoading(false);
     }
   };
@@ -125,14 +128,14 @@ export function FileImporter({ onQuestionsLoaded, onError, darkMode }: FileImpor
           Interactive Quiz App
         </h1>
         <p className="mb-6 text-center" style={{ color: darkMode ? '#d1d5db' : '#4b5563' }}>
-          Import your quiz questions from a JSON file to get started
+          Import your quiz questions from a JSON or TOON file to get started
         </p>
 
         <div className="space-y-4">
           <input
             ref={fileInputRef}
             type="file"
-            accept=".json,application/json"
+            accept=".json,.toon,application/json,text/plain"
             onChange={handleFileSelect}
             className="hidden"
             disabled={isLoading}
@@ -144,7 +147,7 @@ export function FileImporter({ onQuestionsLoaded, onError, darkMode }: FileImpor
             aria-label="Select quiz JSON file"
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-blue-300"
           >
-            {isLoading ? '⏳ Loading...' : '📁 Select JSON File'}
+            {isLoading ? '⏳ Loading...' : '📁 Select JSON/TOON File'}
           </button>
 
           <div className="relative">
@@ -161,7 +164,7 @@ export function FileImporter({ onQuestionsLoaded, onError, darkMode }: FileImpor
             disabled={isLoading}
             className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-purple-300"
           >
-            📋 Paste JSON Content
+            📋 Paste JSON/TOON Content
           </button>
 
           {showPasteArea && (
@@ -169,7 +172,7 @@ export function FileImporter({ onQuestionsLoaded, onError, darkMode }: FileImpor
               <textarea
                 value={pastedContent}
                 onChange={(e) => setPastedContent(e.target.value)}
-                placeholder="Paste your JSON content here..."
+                placeholder="Paste your JSON or TOON content here..."
                 className="w-full h-48 p-3 border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-lg focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 font-mono text-sm"
                 disabled={isLoading}
               />
@@ -209,26 +212,29 @@ export function FileImporter({ onQuestionsLoaded, onError, darkMode }: FileImpor
             </h3>
             <button
               onClick={(e) => {
-                const prompt = `Generate a comprehensive quiz in JSON format with the following exact structure:
+                const prompt = `Generate a comprehensive quiz in TOON format (Token-Oriented Object Notation) with the following exact structure:
 
-[
-  {
-    "question": "Your detailed question here",
-    "answer": "A",
-    "explanation": "Comprehensive explanation that provides deep understanding of the concept, including why this answer is correct and why other options are incorrect, explain in details why the other answer is incorrect based on the information of the document provided. Include relevant background information and real-world applications.",
-    "options": ["Correct answer", "Plausible distractor 1", "Plausible distractor 2", "Plausible distractor 3"],
-    "context": "Detailed background context explaining the topic area, relevant concepts, and why this knowledge is important. This should help learners understand the broader subject matter."
-  }
-]
+[15]:
+  - question: Your detailed question here
+    answer: A
+    explanation: Comprehensive explanation that provides deep understanding of the concept, including why this answer is correct and why other options are incorrect. Explain in details why the other answers are incorrect based on the information of the document provided. Include relevant background information and real-world applications.
+    options[4]: Correct answer,Plausible distractor 1,Plausible distractor 2,Plausible distractor 3
+    context: Detailed background context explaining the topic area, relevant concepts, and why this knowledge is important. This should help learners understand the broader subject matter.
+  - question: Second question here
+    answer: B
+    explanation: Another comprehensive explanation with clear reasoning and educational value. Explain why this answer is correct and why the others are incorrect.
+    options[4]: Option 1,Correct answer,Option 3,Option 4
+    context: Context for the second question explaining the broader topic area.
 
-JSON Format Requirements:
-- Each question object must have exactly these 5 fields: "question", "answer", "explanation", "options", "context"
+TOON Format Requirements:
+- Start with [N]: where N is the number of questions
+- Each question is a list item starting with "- question:"
+- Each question must have exactly these 5 fields: question, answer, explanation, options, context
 - "answer" must be exactly "A", "B", "C", or "D" (matching the position in options array)
-- "options" must be an array of exactly 4 strings
-- "explanation" should be 5-6 sentences minimum with clear reasoning with why the answer is correct and why the others answers are uncorrect
+- "options[4]:" followed by comma-separated values (no quotes needed unless the option contains commas)
+- "explanation" should be 5-6 sentences minimum with clear reasoning explaining why the answer is correct and why the other answers are incorrect
 - "context" should provide meaningful background and topic explanation
-- The root must be an array of question objects
-- Use proper JSON syntax with double quotes for all strings
+- Use proper TOON syntax with consistent indentation
 
 Content Requirements:
 - Create 15 questions covering different aspects of the topic
@@ -240,7 +246,7 @@ Content Requirements:
 
 Topic: based on the file provided
 
-Please generate a comprehensive quiz following this exact JSON structure and return only the valid JSON array.`;
+Please generate a comprehensive quiz following this exact TOON structure and return only the valid TOON format.`;
                 
                 navigator.clipboard.writeText(prompt).then(() => {
                   // Show success feedback
@@ -265,37 +271,51 @@ Please generate a comprehensive quiz following this exact JSON structure and ret
             borderColor: darkMode ? 'rgba(156,163,175,0.2)' : 'rgba(107,114,128,0.2)'
           }}>
             <p className="text-xs mb-2" style={{ color: darkMode ? '#d1d5db' : '#4b5563' }}>
-              Copy this prompt and use it with ChatGPT, Claude, or any AI assistant to generate comprehensive quiz questions.
+              Copy this prompt and use it with ChatGPT, Claude, or any AI assistant to generate comprehensive quiz questions in JSON or TOON format.
             </p>
             <div className="text-xs" style={{ color: darkMode ? '#9ca3af' : '#6b7280' }}>
               <p className="mb-1 font-semibold">Instructions:</p>
               <ol className="list-decimal list-inside space-y-1 ml-2">
                 <li>Copy the prompt above from the button</li>
                 <li>Paste into your AI assistant</li>
-                <li>Copy the generated JSON back here</li>
-                <li>Adjust the number of the questions as you want in the preset prompt</li>
+                <li>Copy the generated JSON or TOON back here</li>
+                <li>Adjust the number of questions as needed in the prompt</li>
               </ol>
             </div>
           </div>
 
-          <div className="p-3 rounded border" style={{ 
-            backgroundColor: darkMode ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.2)',
-            borderColor: darkMode ? 'rgba(156,163,175,0.2)' : 'rgba(107,114,128,0.2)'
-          }}>
-            <h4 className="text-xs font-semibold mb-2" style={{ color: darkMode ? '#f3f4f6' : '#1f2937' }}>
-              Expected JSON Format:
-            </h4>
-            <pre className="text-xs overflow-x-auto" style={{ color: darkMode ? '#e5e7eb' : '#374151' }}>
+          <div className="space-y-3">
+            <div className="p-3 rounded border" style={{ 
+              backgroundColor: darkMode ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.2)',
+              borderColor: darkMode ? 'rgba(156,163,175,0.2)' : 'rgba(107,114,128,0.2)'
+            }}>
+              <h4 className="text-xs font-semibold mb-2" style={{ color: darkMode ? '#f3f4f6' : '#1f2937' }}>
+                JSON Format:
+              </h4>
+              <pre className="text-xs overflow-x-auto" style={{ color: darkMode ? '#e5e7eb' : '#374151' }}>
 {`[
   {
     "question": "What is the capital of France?",
     "answer": "A",
-    "explanation": "Paris is the capital and most populous city of France.",
+    "explanation": "Paris is the capital...",
     "options": ["Paris", "London", "Berlin", "Madrid"],
     "context": "European geography"
   }
 ]`}
-            </pre>
+              </pre>
+            </div>
+            
+            <div className="p-3 rounded border" style={{ 
+              backgroundColor: darkMode ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.2)',
+              borderColor: darkMode ? 'rgba(156,163,175,0.2)' : 'rgba(107,114,128,0.2)'
+            }}>
+              <h4 className="text-xs font-semibold mb-2" style={{ color: darkMode ? '#f3f4f6' : '#1f2937' }}>
+                TOON Format (Token-Efficient):
+              </h4>
+              <pre className="text-xs overflow-x-auto" style={{ color: darkMode ? '#e5e7eb' : '#374151' }}>
+{getSampleToonFormat()}
+              </pre>
+            </div>
           </div>
         </div>
       </div>
