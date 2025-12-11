@@ -208,7 +208,7 @@ export function FileImporter({ onQuestionsLoaded, onError, darkMode }: FileImpor
         <div className="mt-6 p-4 bg-white/20 dark:bg-black/20 rounded-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-sm font-semibold" style={{ color: darkMode ? '#f9fafb' : '#1f2937' }}>
-              🤖 AI Quiz Generator Prompt
+              AI Quiz Generator Prompt
             </h3>
             <button
               onClick={(e) => {
@@ -243,7 +243,7 @@ Question Distribution:
 
 Topic: [Based on the document/content provided]
 
-Generate exactly 30 high-quality questions following this TOON structure. Return only the valid TOON format with no additional text.`;
+Generate exactly 10 high-quality questions following this TOON structure. Return only the valid TOON format with no additional text.`;
                 
                 navigator.clipboard.writeText(prompt).then(() => {
                   // Show success feedback
@@ -257,7 +257,7 @@ Generate exactly 30 high-quality questions following this TOON structure. Return
                   }, 2000);
                 });
               }}
-              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-blue-300"
             >
               📋 Copy Prompt
             </button>
@@ -277,7 +277,7 @@ Generate exactly 30 high-quality questions following this TOON structure. Return
                 <li>Paste into ChatGPT, Claude, or any AI assistant</li>
                 <li>Provide your source material (document, notes, etc.)</li>
                 <li>Copy the generated TOON format back here</li>
-                <li>Optionally adjust question count (default: 15)</li>
+                <li>Optionally adjust question count (default: 10)</li>
               </ol>
             </div>
           </div>
@@ -288,18 +288,16 @@ Generate exactly 30 high-quality questions following this TOON structure. Return
               borderColor: darkMode ? 'rgba(156,163,175,0.2)' : 'rgba(107,114,128,0.2)'
             }}>
               <h4 className="text-xs font-semibold mb-2" style={{ color: darkMode ? '#f3f4f6' : '#1f2937' }}>
-                JSON Format:
+                Please adjust the question creation prompt to your preference:
               </h4>
               <pre className="text-xs overflow-x-auto" style={{ color: darkMode ? '#e5e7eb' : '#374151' }}>
-{`[
-  {
-    "question": "What is the capital of France?",
-    "answer": "A",
-    "explanation": "Paris is the capital...",
-    "options": ["Paris", "London", "Berlin", "Madrid"],
-    "context": "European geography"
-  }
-]`}
+{`Question Distribution?
+
+What is the focused topic?
+
+The number of questions you want?
+
+Whether you want the explaination more details?`}
               </pre>
             </div>
             
@@ -308,7 +306,7 @@ Generate exactly 30 high-quality questions following this TOON structure. Return
               borderColor: darkMode ? 'rgba(156,163,175,0.2)' : 'rgba(107,114,128,0.2)'
             }}>
               <h4 className="text-xs font-semibold mb-2" style={{ color: darkMode ? '#f3f4f6' : '#1f2937' }}>
-                TOON Format (Token-Efficient):
+                TOON Format:
               </h4>
               <pre className="text-xs overflow-x-auto" style={{ color: darkMode ? '#e5e7eb' : '#374151' }}>
 {getSampleToonFormat()}
