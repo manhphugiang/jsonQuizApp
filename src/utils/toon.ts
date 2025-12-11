@@ -1,23 +1,142 @@
-import { encode, decode } from '@toon-format/toon';
 import type { Question } from '../types';
 
 /**
  * TOON utility functions for encoding/decoding quiz data
+ * Using compact schema-aware TOON format
  */
 
 /**
  * Convert JSON questions array to TOON format
  */
 export function questionsToToon(questions: Question[]): string {
-  return encode(questions);
+  if (questions.length === 0) return '';
+  
+  const toonLines = [
+    `questions[${questions.length}]{question,answer,explanation,option1,option2,option3,option4,context}:`
+  ];
+  
+  questions.forEach(q => {
+    // Ensure we have exactly 4 options
+    const options = [...q.options];
+    while (options.length < 4) options.push('');
+    
+    // Create the data row with individual option fields
+    const dataRow = [
+      q.question,
+      q.answer,
+      q.explanation,
+      options[0],
+      options[1], 
+      options[2],
+      options[3],
+      q.context
+    ].map(field => {
+      // Quote fields that contain commas
+      if (field.includes(',')) {
+        return `"${field.replace(/"/g, '""')}"`;
+      }
+      return field;
+    }).join(',');
+    
+    toonLines.push(`  ${dataRow}`);
+  });
+  
+  return toonLines.join('\n');
 }
 
 /**
  * Convert TOON format back to questions array
  */
 export function toonToQuestions(toonString: string): Question[] {
-  const decoded = decode(toonString);
-  return decoded as Question[];
+  const lines = toonString.trim().split('\n');
+  
+  if (lines.length === 0) return [];
+  
+  // Parse the schema line
+  const schemaLine = lines[0];
+  const schemaMatch = schemaLine.match(/questions\[(\d+)\]\{([^}]+)\}:/);
+  
+  if (!schemaMatch) {
+    throw new Error('Invalid TOON format: Missing schema definition');
+  }
+  
+  const expectedCount = parseInt(schemaMatch[1]);
+  const fields = schemaMatch[2].split(',');
+  
+  // Validate expected fields for the new format
+  const requiredFields = ['question', 'answer', 'explanation', 'option1', 'option2', 'option3', 'option4', 'context'];
+  if (!requiredFields.every(field => fields.includes(field))) {
+    throw new Error('Invalid TOON format: Missing required fields in schema');
+  }
+  
+  const questions: Question[] = [];
+  
+  // Parse data rows
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    
+    // Remove leading spaces
+    const dataLine = line.replace(/^\s+/, '');
+    
+    // Parse CSV-like data (handling commas in content)
+    const parts = parseCSVLine(dataLine);
+    
+    if (parts.length !== fields.length) {
+      throw new Error(`Invalid TOON format: Row ${i} has ${parts.length} fields, expected ${fields.length}`);
+    }
+    
+    // Map fields to question object
+    const question: any = {};
+    const options: string[] = [];
+    
+    fields.forEach((field, index) => {
+      if (field.startsWith('option')) {
+        // Collect options
+        options.push(parts[index]);
+      } else {
+        question[field] = parts[index];
+      }
+    });
+    
+    // Add options array to question
+    question.options = options.filter(opt => opt.trim() !== '');
+    
+    questions.push(question as Question);
+  }
+  
+  if (questions.length !== expectedCount) {
+    throw new Error(`Invalid TOON format: Expected ${expectedCount} questions, found ${questions.length}`);
+  }
+  
+  return questions;
+}
+
+/**
+ * Parse a CSV-like line handling quoted values and commas
+ */
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  let i = 0;
+  
+  while (i < line.length) {
+    const char = line[i];
+    
+    if (char === '"' && (i === 0 || line[i - 1] !== '\\')) {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+    i++;
+  }
+  
+  result.push(current.trim());
+  return result;
 }
 
 /**
@@ -26,13 +145,11 @@ export function toonToQuestions(toonString: string): Question[] {
 export function isToonFormat(input: string): boolean {
   const trimmed = input.trim();
   
-  // Look for TOON-specific patterns from @toon-format/toon first
+  // Look for new schema-aware TOON format patterns
   const toonPatterns = [
-    /^\[\d+\]:/,               // [n]: pattern for arrays at start
-    /^\s*-\s+\w+:/m,           // - key: pattern for objects in arrays (multiline)
-    /\w+\[\d+\]:/,             // key[n]: pattern for arrays with keys
-    /^\s*\w+:\s+\w+/m,         // key: value pattern at start of line (multiline)
-    /^\[\d+\]:\s*-\s+\w+:/m    // Compact format: [n]:- key: (no newline after colon)
+    /^\w+\[\d+\]\{[^}]+\}:/,   // schema[n]{fields}: pattern
+    /^\w+:\s+\w+/m,            // key: value pattern (simple fields)
+    /^\w+\[\d+\]:/m,           // array[n]: pattern
   ];
   
   const isToon = toonPatterns.some(pattern => pattern.test(trimmed));
@@ -42,7 +159,7 @@ export function isToonFormat(input: string): boolean {
     return true;
   }
   
-  // JSON format starts with [ or { (but not TOON [n]: pattern)
+  // JSON format starts with [ or { (but not TOON patterns)
   if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
     return false;
   }
@@ -86,28 +203,7 @@ export function getSampleToonFormat(): string {
  * Format compact TOON content with proper indentation and line breaks
  */
 export function formatToonContent(compactToon: string): string {
-  // If it's already properly formatted, return as-is
-  if (compactToon.includes('\n  - question:')) {
-    return compactToon;
-  }
-  
-  // Handle compact format like "[10]:- question: ..."
-  let formatted = compactToon;
-  
-  // Add newline after [n]:
-  formatted = formatted.replace(/(\[\d+\]:)(?![\r\n])/g, '$1\n');
-  
-  // Add proper indentation for list items
-  formatted = formatted.replace(/- question:/g, '  - question:');
-  
-  // Add proper indentation for other fields
-  formatted = formatted.replace(/answer:/g, '    answer:');
-  formatted = formatted.replace(/explanation:/g, '    explanation:');
-  formatted = formatted.replace(/options\[\d+\]:/g, '    options[4]:');
-  formatted = formatted.replace(/context:/g, '    context:');
-  
-  // Add newlines between questions (before each "- question:" except the first)
-  formatted = formatted.replace(/(?<!^|\n)  - question:/g, '\n  - question:');
-  
-  return formatted;
+  // The new TOON format is already compact and doesn't need reformatting
+  // Just ensure proper line breaks
+  return compactToon.trim();
 }

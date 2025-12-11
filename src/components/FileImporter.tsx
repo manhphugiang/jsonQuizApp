@@ -214,39 +214,36 @@ export function FileImporter({ onQuestionsLoaded, onError, darkMode }: FileImpor
               onClick={(e) => {
                 const prompt = `Generate a comprehensive quiz in TOON format (Token-Oriented Object Notation) with the following exact structure:
 
-[15]:
-  - question: Your detailed question here
-    answer: A
-    explanation: Comprehensive explanation that provides deep understanding of the concept, including why this answer is correct and why other options are incorrect. Explain in details why the other answers are incorrect based on the information of the document provided. Include relevant background information and real-world applications.
-    options[4]: Correct answer,Plausible distractor 1,Plausible distractor 2,Plausible distractor 3
-    context: Detailed background context explaining the topic area, relevant concepts, and why this knowledge is important. This should help learners understand the broader subject matter.
-  - question: Second question here
-    answer: B
-    explanation: Another comprehensive explanation with clear reasoning and educational value. Explain why this answer is correct and why the others are incorrect.
-    options[4]: Option 1,Correct answer,Option 3,Option 4
-    context: Context for the second question explaining the broader topic area.
+questions[15]{question,answer,explanation,option1,option2,option3,option4,context}:
+  "What major improvement introduced in 802.11n allowed Wi-Fi networks to take advantage of multipath rather than suffer from it?",A,"MIMO uses multiple antennas to turn multipath reflections into separate spatial streams, increasing throughput and range. Other options describe enhancements from later standards or unrelated techniques. For example, OFDMA appears only in 802.11ax, not 802.11n, and 4096-QAM belongs to Wi-Fi 7. Understanding this distinction is crucial for wireless network design.",MIMO technology,OFDMA scheduling,4096-QAM modulation,Multi-AP coordination,"802.11n introduced the High Throughput PHY and relied heavily on MIMO to boost speed and reliability by leveraging multipath"
+  "Why is 40 MHz channel bonding in the 2.4 GHz band generally considered impractical for 802.11n deployments?",B,"A single 40 MHz channel occupies nearly the entire 2.4 GHz band, causing interference with almost all nearby 20 MHz channels. The band is limited, and coexistence mechanisms often force APs back to 20 MHz. Other options misrepresent the cause; regulatory limits exist but are not the main issue. This affects practical deployment strategies significantly.",It offers no throughput improvement,It interferes with nearly all other nearby channels,It is prohibited by all regulators,It reduces the number of spatial streams available,"The 2.4 GHz band is crowded and narrow, so wider channels cause significant overlap in real-world environments"
 
 TOON Format Requirements:
-- Start with [N]: where N is the number of questions
-- Each question is a list item starting with "- question:"
-- Each question must have exactly these 5 fields: question, answer, explanation, options, context
-- "answer" must be exactly "A", "B", "C", or "D" (matching the position in options array)
-- "options[4]:" followed by comma-separated values (no quotes needed unless the option contains commas)
-- "explanation" should be 5-6 sentences minimum with clear reasoning explaining why the answer is correct and why the other answers are incorrect
-- "context" should provide meaningful background and topic explanation
-- Use proper TOON syntax with consistent indentation
+- Start with "questions[N]{question,answer,explanation,option1,option2,option3,option4,context}:" where N is the number of questions (15 recommended)
+- Each data row contains comma-separated values in this exact order: question, answer, explanation, option1, option2, option3, option4, context
+- Use proper indentation (2 spaces) for each data row
+- "answer" must be exactly "A", "B", "C", or "D" (A=option1, B=option2, C=option3, D=option4)
+- Wrap fields containing commas, quotes, or special characters in double quotes
+- Escape internal quotes by doubling them ("")
 
-Content Requirements:
-- Create 15 questions covering different aspects of the topic
-- Options should be realistic and challenging (avoid obvious wrong answers)
-- Cover both fundamental concepts and practical applications
-- Include questions of varying difficulty levels
-- Explanations should teach the concept, not just state the answer
-- Context should help learners understand the broader subject matter
+Content Quality Requirements:
+- "question": Clear, specific, and directly related to the source material
+- "explanation": 4-6 sentences explaining why the correct answer is right AND why each incorrect option is wrong
+- "option1-4": Realistic, plausible distractors that test understanding (avoid obviously wrong answers)
+- "context": Brief background explaining the topic area and its importance
+- Cover fundamental concepts, practical applications, and edge cases
+- Include questions of varying difficulty levels (basic, intermediate, advanced)
+- Ensure explanations teach the concept, not just state facts
 
-Topic: based on the file provided
+Question Distribution:
+- 40% fundamental concepts and definitions
+- 40% practical applications and real-world scenarios  
+- 20% advanced topics and edge cases
+- Mix of factual recall, conceptual understanding, and application questions
 
-Please generate a comprehensive quiz following this exact TOON structure and return only the valid TOON format.`;
+Topic: [Based on the document/content provided]
+
+Generate exactly 15 high-quality questions following this TOON structure. Return only the valid TOON format with no additional text.`;
                 
                 navigator.clipboard.writeText(prompt).then(() => {
                   // Show success feedback
@@ -271,15 +268,16 @@ Please generate a comprehensive quiz following this exact TOON structure and ret
             borderColor: darkMode ? 'rgba(156,163,175,0.2)' : 'rgba(107,114,128,0.2)'
           }}>
             <p className="text-xs mb-2" style={{ color: darkMode ? '#d1d5db' : '#4b5563' }}>
-              Copy this prompt and use it with ChatGPT, Claude, or any AI assistant to generate comprehensive quiz questions in JSON or TOON format.
+              Copy this optimized prompt to generate high-quality quiz questions in TOON format (40-60% more token-efficient than JSON).
             </p>
             <div className="text-xs" style={{ color: darkMode ? '#9ca3af' : '#6b7280' }}>
-              <p className="mb-1 font-semibold">Instructions:</p>
+              <p className="mb-1 font-semibold">How to use:</p>
               <ol className="list-decimal list-inside space-y-1 ml-2">
-                <li>Copy the prompt above from the button</li>
-                <li>Paste into your AI assistant</li>
-                <li>Copy the generated JSON or TOON back here</li>
-                <li>Adjust the number of questions as needed in the prompt</li>
+                <li>Copy the prompt using the button above</li>
+                <li>Paste into ChatGPT, Claude, or any AI assistant</li>
+                <li>Provide your source material (document, notes, etc.)</li>
+                <li>Copy the generated TOON format back here</li>
+                <li>Optionally adjust question count (default: 15)</li>
               </ol>
             </div>
           </div>
