@@ -243,7 +243,7 @@ Question Distribution:
 
 Topic: [Based on the document/content provided]
 
-Generate exactly 15 high-quality questions following this TOON structure. Return only the valid TOON format with no additional text.`;
+Generate exactly 30 high-quality questions following this TOON structure. Return only the valid TOON format with no additional text.`;
                 
                 navigator.clipboard.writeText(prompt).then(() => {
                   // Show success feedback
